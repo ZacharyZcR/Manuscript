@@ -33,7 +33,7 @@ DWORD FindProcessId(const char *processname) {
 
 // 主函数
 int main() {
-    const char *dllPath = "hello.dll";
+    const char *dllPath = "D://hello.dll";
     const char *targetProcess = "notepad.exe";
     DWORD pid = FindProcessId(targetProcess);
 
@@ -66,25 +66,30 @@ int main() {
     HMODULE hKernel32 = GetModuleHandle("Kernel32");
     FARPROC pLoadLibrary = GetProcAddress(hKernel32, "LoadLibraryA");
 
-    // 创建远程线程来加载DLL
-    HANDLE hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)pLoadLibrary, pDllPath, 0, NULL);
-    if (hThread == NULL) {
-        printf("创建远程线程失败。\n");
-        VirtualFreeEx(hProcess, pDllPath, 0, MEM_RELEASE);
-        CloseHandle(hProcess);
-        return 1;
+    // 遍历线程注入APC
+    HANDLE hThreadSnap = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
+    THREADENTRY32 te32;
+    te32.dwSize = sizeof(THREADENTRY32);
+
+    if (Thread32First(hThreadSnap, &te32)) {
+        do {
+            if (te32.th32OwnerProcessID == pid) {
+                HANDLE hThread = OpenThread(THREAD_SET_CONTEXT, FALSE, te32.th32ThreadID);
+                if (hThread) {
+                    // 向线程队列中插入APC
+                    QueueUserAPC((PAPCFUNC)pLoadLibrary, hThread, (ULONG_PTR)pDllPath);
+                    CloseHandle(hThread);
+                }
+            }
+        } while (Thread32Next(hThreadSnap, &te32));
     }
+    CloseHandle(hThreadSnap);
 
-    printf("成功创建远程线程，DLL注入中。\n");
-
-    // 等待远程线程结束
-    WaitForSingleObject(hThread, INFINITE);
+    printf("APC队列已注入所有线程。\n");
 
     // 清理
-    CloseHandle(hThread);
-    VirtualFreeEx(hProcess, pDllPath, 0, MEM_RELEASE);
     CloseHandle(hProcess);
-    printf("DLL注入完成。\n");
+    printf("注入完成。\n");
 
     return 0;
 }
