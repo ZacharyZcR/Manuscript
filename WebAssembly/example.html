@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<body>
+<script>
+    fetch('example.wasm').then(response =>
+        response.arrayBuffer()
+    ).then(bytes =>
+        WebAssembly.instantiate(bytes)
+    ).then(results => {
+        const instance = results.instance;
+        console.log(instance.exports.add(1, 2)); // 输出 3
+    });
+</script>
+</body>
+</html>
