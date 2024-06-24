@@ -76,3 +76,58 @@ WebAssembly 的未来发展前景广阔，它不仅在 web 开发中扮演重要
 #### 七、结论
 
 WebAssembly 为 web 应用程序的性能和功能带来了革命性的提升。它通过提供高效、安全、跨平台的执行环境，使得开发者可以使用各种编程语言构建高性能的 web 应用程序。随着技术的不断进步，WebAssembly 的应用前景将更加广阔。
+
+看起来即使使用 `-s STANDALONE_WASM` 选项，链接器仍然在寻找 `main` 函数。这种情况可以通过以下方法之一解决：
+
+### 方法一：添加 `main` 函数
+
+确保代码中包含一个 `main` 函数，即使它什么也不做：
+
+```c
+#include <emscripten.h>
+
+EMSCRIPTEN_KEEPALIVE
+int add(int a, int b) {
+    return a + b;
+}
+
+int main() {
+    return 0;
+}
+```
+
+然后编译：
+
+```bash
+emcc example.c -o example.wasm
+```
+
+### 方法二：使用 `--no-entry` 标志
+
+如果确实不想添加 `main` 函数，可以使用 `--no-entry` 标志来告诉链接器不需要入口点：
+
+```bash
+emcc example.c -o example.wasm --no-entry
+```
+
+### 方法三：生成 JavaScript 和 HTML 文件
+
+你也可以通过生成 JavaScript 和 HTML 文件来避免这个问题：
+
+```bash
+emcc example.c -o example.html
+```
+
+这会生成一个 HTML 文件和相关的 JavaScript 文件以及 WebAssembly 模块，可以在浏览器中直接运行。
+
+### 方法四：使用 `-r` 选项生成可重定位对象文件
+
+如果只是想生成一个库文件，可以使用 `-r` 选项生成一个可重定位的对象文件：
+
+```bash
+emcc example.c -o example.o -r
+```
+
+然后在需要时链接这些对象文件。
+
+希望其中一个方法能解决你的问题。根据你的需求选择合适的解决方案。
