@@ -1,0 +1,8 @@
+{
+    "version": "1.0.0",
+    "paks": {
+        "bitos": "https://github.com/embedthis/bitos.git",
+        "bite": "https://github.com/embedthis/bite.git",
+        "bitten": "https://github.com/embedthis/bitten.git",
+    },
+},
