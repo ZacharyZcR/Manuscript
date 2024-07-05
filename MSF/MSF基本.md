@@ -6,8 +6,8 @@ Metasploit 可以在多种操作系统上安装，包括 Windows、Linux 和 mac
 
 ```bash
 curl https://raw.githubusercontent.com/rapid7/metasploit-omnibus/master/config/templates/metasploit-framework-wrappers/msfupdate.erb > msfinstall && \
-  chmod 755 msfinstall && \
-  ./msfinstall
+chmod 755 msfinstall && \
+./msfinstall
 ```
 
 ### 2. 初始化数据库
